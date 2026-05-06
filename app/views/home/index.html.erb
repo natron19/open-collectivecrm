@@ -1,0 +1,64 @@
+<div class="row align-items-center py-5 g-5">
+  <div class="col-lg-6">
+    <p class="text-warning fw-semibold text-uppercase small mb-2 letter-spacing-1">AI-Powered Sales Outreach</p>
+    <h1 class="display-5 fw-bold lh-sm mb-4">
+      Your AI researches every lead before writing outreach
+    </h1>
+    <p class="lead text-muted mb-4">
+      <%= ENV.fetch("APP_TAGLINE", "") %>
+    </p>
+    <p class="text-muted mb-5">
+      <%= ENV.fetch("APP_DESCRIPTION", "") %>
+    </p>
+    <div class="d-flex gap-3 flex-wrap">
+      <% if signed_in? %>
+        <%= link_to "Go to Pipeline", dashboard_path, class: "btn btn-warning btn-lg fw-semibold" %>
+      <% else %>
+        <%= link_to "Try it free", sign_up_path, class: "btn btn-warning btn-lg fw-semibold" %>
+        <%= link_to "Sign in", sign_in_path, class: "btn btn-outline-secondary btn-lg" %>
+      <% end %>
+    </div>
+
+    <div class="mt-5 d-flex gap-4 text-muted small">
+      <span>✓ Gemini-powered research</span>
+      <span>✓ 3 outreach angles</span>
+      <span>✓ Open source MIT</span>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card bg-dark border-secondary rounded-3 overflow-hidden">
+      <div class="card-header border-secondary d-flex align-items-center gap-2 py-2 px-3">
+        <span class="badge rounded-pill" style="background-color: var(--accent);">Prospect</span>
+        <span class="badge rounded-pill bg-secondary">Contacted</span>
+        <span class="badge rounded-pill bg-secondary">Qualified</span>
+        <span class="badge rounded-pill bg-secondary">Proposal</span>
+        <span class="badge rounded-pill bg-secondary">Closed</span>
+      </div>
+      <div class="card-body p-3">
+        <div class="card bg-dark border rounded mb-2 p-3" style="border-color: var(--accent) !important;">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-semibold">Jordan Ellis</div>
+              <div class="small text-muted">Head of Growth · Lattice</div>
+            </div>
+            <span class="badge" style="background-color: var(--secondary);">startup</span>
+          </div>
+        </div>
+        <div class="card bg-dark border-secondary rounded mb-2 p-3">
+          <div class="fw-semibold">Priya Nair</div>
+          <div class="small text-muted">VP Sales · Figma</div>
+        </div>
+        <div class="card bg-dark border-secondary rounded p-3">
+          <div class="fw-semibold">Marcus Webb</div>
+          <div class="small text-muted">Founder · Tally</div>
+        </div>
+      </div>
+      <div class="card-footer border-secondary p-3">
+        <div class="alert alert-info border-0 p-2 mb-0 small research-summary">
+          <strong>What the agent found:</strong> Lattice closed a $45M Series C in March, expanding their performance management platform. Team grew 40% YoY.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

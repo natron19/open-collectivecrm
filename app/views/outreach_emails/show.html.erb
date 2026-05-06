@@ -1,0 +1,72 @@
+<div class="mb-4">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Dashboard", dashboard_path %></li>
+      <li class="breadcrumb-item"><%= link_to "#{@outreach_email.lead.first_name} #{@outreach_email.lead.last_name}", lead_path(@outreach_email.lead) %></li>
+      <li class="breadcrumb-item active">Outreach &mdash; <%= @outreach_email.created_at.strftime("%b %-d, %Y") %></li>
+    </ol>
+  </nav>
+  <%= link_to "&larr; Back to Lead".html_safe, lead_path(@outreach_email.lead), class: "btn btn-sm btn-outline-secondary" %>
+</div>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-header border-secondary d-flex align-items-center gap-2">
+    <span class="badge <%= angle_badge_class(@outreach_email.angle) %>">
+      <%= @outreach_email.angle.humanize %>
+    </span>
+    <span class="text-muted small ms-auto"><%= @outreach_email.created_at.strftime("%b %-d, %Y at %I:%M %p") %></span>
+  </div>
+  <div class="card-body p-4">
+    <%# Research summary %>
+    <% if @outreach_email.research_summary.present? %>
+      <div class="mb-3">
+        <button class="btn btn-sm btn-outline-secondary mb-2" type="button"
+                data-bs-toggle="collapse" data-bs-target="#research_summary">
+          What the agent found
+        </button>
+        <div id="research_summary" class="collapse show">
+          <div class="alert alert-info research-summary">
+            <p class="mb-2"><%= @outreach_email.research_summary %></p>
+            <% if @outreach_email.sources.present? %>
+              <ul class="mb-0 small">
+                <% @outreach_email.sources.split("\n").each do |url| %>
+                  <% next if url.blank? %>
+                  <li><%= link_to url, url, target: "_blank", rel: "noopener" %></li>
+                <% end %>
+              </ul>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <%# Email content %>
+    <% if @outreach_email.subject.present? %>
+      <h6 class="text-muted text-uppercase small mb-1">Subject</h6>
+      <p class="fw-semibold mb-3"><%= @outreach_email.subject %></p>
+    <% end %>
+
+    <% if @outreach_email.body.present? %>
+      <h6 class="text-muted text-uppercase small mb-1">Body</h6>
+      <pre class="text-wrap bg-body-secondary p-3 rounded small lh-base"><%= @outreach_email.body %></pre>
+    <% end %>
+
+    <%# Raw response toggle %>
+    <% if @outreach_email.gemini_raw.present? %>
+      <div class="mt-3">
+        <button class="btn btn-sm btn-outline-secondary" type="button"
+                data-bs-toggle="collapse" data-bs-target="#raw_response">
+          Show raw response
+        </button>
+        <div id="raw_response" class="collapse mt-2">
+          <pre class="small text-muted p-3 bg-body-secondary rounded" style="max-height: 300px; overflow-y: auto;"><%= @outreach_email.gemini_raw %></pre>
+        </div>
+      </div>
+    <% end %>
+  </div>
+  <div class="card-footer border-secondary">
+    <%= link_to "Delete", outreach_email_path(@outreach_email),
+        data: { turbo_method: :delete, turbo_confirm: "Delete this outreach email?" },
+        class: "btn btn-sm btn-outline-danger" %>
+  </div>
+</div>

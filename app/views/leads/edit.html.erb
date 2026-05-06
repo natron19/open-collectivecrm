@@ -1,0 +1,22 @@
+<div class="row justify-content-center">
+  <div class="col-md-10 col-lg-8">
+    <div class="d-flex align-items-center mb-4">
+      <%= link_to lead_path(@lead), class: "btn btn-sm btn-outline-secondary me-3" do %>
+        &larr; Back
+      <% end %>
+      <h1 class="h3 mb-0">Edit Lead</h1>
+    </div>
+
+    <div class="card bg-dark border-secondary">
+      <div class="card-body p-4">
+        <%= form_with model: @lead, url: lead_path(@lead), method: :patch do |f| %>
+          <%= render "form", f: f, lead: @lead %>
+          <div class="mt-4">
+            <%= f.submit "Save Changes", class: "btn btn-warning fw-semibold" %>
+            <%= link_to "Cancel", lead_path(@lead), class: "btn btn-outline-secondary ms-2" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

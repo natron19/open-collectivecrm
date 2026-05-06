@@ -1,0 +1,119 @@
+<div class="row g-4">
+  <%# Left panel — lead details %>
+  <div class="col-md-4">
+    <div class="card bg-dark border-secondary h-100">
+      <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+        <span class="fw-semibold"><%= @lead.first_name %> <%= @lead.last_name %></span>
+        <span id="lead_stage_badge">
+          <%= render "stage_badge", lead: @lead %>
+        </span>
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0 small">
+          <dt class="col-5 text-muted">Company</dt>
+          <dd class="col-7"><%= @lead.company %></dd>
+
+          <dt class="col-5 text-muted">Size</dt>
+          <dd class="col-7"><%= @lead.company_size.humanize %></dd>
+
+          <% if @lead.role.present? %>
+            <dt class="col-5 text-muted">Title</dt>
+            <dd class="col-7"><%= @lead.role %></dd>
+          <% end %>
+
+          <% if @lead.email.present? %>
+            <dt class="col-5 text-muted">Email</dt>
+            <dd class="col-7 text-truncate"><%= mail_to @lead.email, @lead.email, class: "text-muted" %></dd>
+          <% end %>
+
+          <% if @lead.website.present? %>
+            <dt class="col-5 text-muted">Website</dt>
+            <dd class="col-7 text-truncate"><%= link_to @lead.website, @lead.website, target: "_blank", rel: "noopener", class: "text-muted" %></dd>
+          <% end %>
+
+          <% if @lead.notes.present? %>
+            <dt class="col-5 text-muted">Notes</dt>
+            <dd class="col-7"><%= @lead.notes %></dd>
+          <% end %>
+        </dl>
+      </div>
+      <div class="card-footer border-secondary d-flex flex-column gap-2">
+        <%# Move Stage dropdown %>
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+            Move Stage
+          </button>
+          <ul class="dropdown-menu w-100">
+            <% Lead::STAGES.each do |s| %>
+              <li>
+                <%= button_to s.humanize, lead_path(@lead),
+                    method: :patch,
+                    params: { lead: { stage: s } },
+                    class: "dropdown-item #{"active fw-semibold" if @lead.stage == s}",
+                    data: { turbo_stream: "" } %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+
+        <%= link_to "Edit Lead", edit_lead_path(@lead), class: "btn btn-sm btn-outline-secondary w-100" %>
+
+        <%= link_to "Delete Lead", lead_path(@lead),
+            data: { turbo_method: :delete, turbo_confirm: "Delete this lead and all outreach emails?" },
+            class: "btn btn-sm btn-outline-danger w-100" %>
+      </div>
+    </div>
+  </div>
+
+  <%# Right panel — outreach generation %>
+  <div class="col-md-8">
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-body p-4">
+        <h5 class="card-title mb-3">Generate Outreach</h5>
+
+        <div class="alert alert-secondary small mb-3">
+          The agent searches the web and may find outdated or incorrect information.
+          Review the research summary and verify the sources before sending any email.
+        </div>
+
+        <div data-controller="outreach"
+             data-outreach-url-value="<%= generate_outreach_lead_path(@lead) %>">
+          <div class="btn-group w-100 mb-3" role="group" aria-label="Outreach angle">
+            <input type="radio" class="btn-check" name="outreach_angle"
+                   id="angle_value" value="value"
+                   data-outreach-target="angle" checked>
+            <label class="btn btn-outline-warning" for="angle_value">Value-focused</label>
+
+            <input type="radio" class="btn-check" name="outreach_angle"
+                   id="angle_problem" value="problem"
+                   data-outreach-target="angle">
+            <label class="btn btn-outline-warning" for="angle_problem">Problem-focused</label>
+
+            <input type="radio" class="btn-check" name="outreach_angle"
+                   id="angle_referral" value="referral"
+                   data-outreach-target="angle">
+            <label class="btn btn-outline-warning" for="angle_referral">Referral-focused</label>
+          </div>
+
+          <button class="btn btn-warning w-100 mb-2"
+                  data-action="click->outreach#generate"
+                  data-outreach-target="button">
+            Research and Write Outreach
+          </button>
+
+          <button class="btn btn-outline-secondary w-100 mb-3 d-none"
+                  data-action="click->outreach#cancel"
+                  data-outreach-target="cancelButton">
+            Cancel
+          </button>
+
+          <div id="outreach_progress" data-outreach-target="progress" class="mb-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="outreach_results">
+      <%= render @outreach_emails %>
+    </div>
+  </div>
+</div>
