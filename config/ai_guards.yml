@@ -1,0 +1,23 @@
+# Per-app guardrail configuration, read by AiGuardConfig.
+# See docs/ai-guardrails.md (Layer 1b: AiOutputGuard) and docs/ai-evals.md.
+
+# Sales outreach is a business task; personal distress is out of scope.
+crisis_terms: []
+
+# Output structure rules per AiTemplate name.
+#   format:        text | json
+#   required_keys: top-level keys the JSON object must contain
+templates:
+  health_ping:
+    format: text
+  demo_placeholder_v1:
+    format: text
+  # LeadsController#generate_outreach JSON.parses the agent's final text into an
+  # OutreachEmail. subject and body are the email itself; research_summary and
+  # sources are optional context (nil-safe in the controller), so not required.
+  collectivecrm_outreach_startup_v1:
+    format: json
+    required_keys: [subject, body]
+  collectivecrm_outreach_enterprise_v1:
+    format: json
+    required_keys: [subject, body]

@@ -6,23 +6,28 @@ class GeminiService
   class GatekeeperError     < GeminiError;   end
   class BudgetExceededError < GeminiError;   end
   class TimeoutError        < GeminiError;   end
+  class OutputGuardError    < GeminiError;   end
+  class CrisisError         < GatekeeperError; end
 
   TIMEOUT_SECONDS       = ENV.fetch("AI_GLOBAL_TIMEOUT_SECONDS", "15").to_i
   AGENT_TIMEOUT_SECONDS = ENV.fetch("AI_AGENT_TIMEOUT_SECONDS", "60").to_i
   BASE_URL              = "https://generativelanguage.googleapis.com/v1beta"
 
-  def self.generate(template:, variables: {}, user: Current.user)
-    new(template:, variables:, user:).generate
+  # trusted: true skips the user-input gatekeeper. Only for internal callers whose
+  # prompt is not user input (the eval harness LLM judge). Still logged and output-guarded.
+  def self.generate(template:, variables: {}, user: Current.user, trusted: false)
+    new(template:, variables:, user:, trusted:).generate
   end
 
   def self.generate_with_tools(template:, variables: {}, user: Current.user, &progress_block)
     new(template:, variables:, user:).generate_with_tools(&progress_block)
   end
 
-  def initialize(template:, variables: {}, user:)
+  def initialize(template:, variables: {}, user:, trusted: false)
     @template_name = template
     @variables     = variables
     @user          = user
+    @trusted       = trusted
   end
 
   def generate
@@ -30,7 +35,7 @@ class GeminiService
     rendered_prompt = ai_template.interpolate(@variables)
 
     begin
-      AiGatekeeper.check!(rendered_prompt, @user)
+      AiGatekeeper.check!(rendered_prompt, @user) unless @trusted
     rescue GatekeeperError => e
       LlmRequest.create!(
         user: @user, ai_template: ai_template, template_name: ai_template.name,
@@ -72,6 +77,7 @@ class GeminiService
         cost_estimate_cents:  estimate_cost(prompt_tokens, response_tokens, ai_template.model)
       )
 
+      check_output!(log, ai_template, response_text, rendered_prompt)
       response_text
 
     rescue Timeout::Error
@@ -149,6 +155,7 @@ class GeminiService
         cost_estimate_cents:  estimate_cost(prompt_tokens, response_tokens, ai_template.model)
       )
 
+      check_output!(log, ai_template, result_text, rendered_prompt)
       { raw: result_text, trace: trace }
 
     rescue Timeout::Error
@@ -177,6 +184,13 @@ class GeminiService
 
   MAX_AGENT_ROUNDS = 5
 
+  def check_output!(log, ai_template, response_text, rendered_prompt)
+    AiOutputGuard.check!(response_text, template: ai_template, input: rendered_prompt)
+  rescue OutputGuardError => e
+    log.update!(status: "output_blocked", error_message: e.message)
+    raise
+  end
+
   def run_agent_loop(ai_template, contents, tools, trace, &progress_block)
     prompt_tokens   = 0
     response_tokens = 0
@@ -203,7 +217,8 @@ class GeminiService
 
           progress_block&.call("#{fn_name.humanize} #{fn_args.values.first}...")
 
-          tool_result = execute_tool(fn_name, fn_args)
+          # Search results and fetched pages are third-party text: neutralize injection first.
+          tool_result = AiGatekeeper.scan_untrusted(execute_tool(fn_name, fn_args))
           trace << { tool: fn_name, args: fn_args, result: tool_result.truncate(500) }
 
           contents << {
