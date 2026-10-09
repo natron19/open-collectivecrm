@@ -253,7 +253,7 @@ class GeminiService
     end
 
     http.post("#{BASE_URL}/models/#{ai_template.model}:generateContent") do |req|
-      req.params["key"] = ENV.fetch("GEMINI_API_KEY")
+      req.headers["x-goog-api-key"] = ENV.fetch("GEMINI_API_KEY")
       req.body = {
         contents:         contents,
         tools:            tools,
@@ -309,7 +309,7 @@ class GeminiService
 
     response = Timeout.timeout(TIMEOUT_SECONDS) do
       http.post("#{BASE_URL}/models/#{ai_template.model}:generateContent") do |req|
-        req.params["key"] = ENV.fetch("GEMINI_API_KEY")
+        req.headers["x-goog-api-key"] = ENV.fetch("GEMINI_API_KEY")
         req.body = {
           contents: [{ parts: [{ text: full_prompt }] }],
           generationConfig: {
